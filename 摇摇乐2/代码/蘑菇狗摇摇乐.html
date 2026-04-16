@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <!-- ================================================================
+         模板名称: 摇摇乐 · 爱丽丝梦游仙境风格掉落画板
+         功能说明: 
+           1. 封面卡片 (可自定义标题、副标题、按钮文字、背景毛玻璃颜色)
+           2. 点击“DRINK ME”后图片从天而降, 支持手机摇动 / 电脑鼠标晃动触发弹跳特效
+           3. 图片池可自由替换, 支持多张图片重复出现
+         ================================================================
+         自定义区域说明: 
+           - 在下方 “【1. 封面自定义区】” 可修改封面文字/颜色/字体等
+           - 在下方 “【2. 图片池配置区】” 可修改图片路径数组
+           - 在下方 “【3. 掉落与动画参数区】” 可调整掉落速度/随机大小范围/边界弹性等
+           - 在下方 “【4. 背景波点区】” 可调整背景颜色/波点密度/动画速度
+         ================================================================ -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Mushroom puppy 🐾· 摇摇乐模板</title>
+    <style>
+        /* 字体引入 (可以修改或删除) */
+        @import url('https://fonts.googleapis.com/css2?family=Henny+Penny&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            overflow: hidden;
+            /* ---------- 【4. 背景波点区 - 主背景颜色】 ---------- */
+            /* 可修改背景底色 (默认柔和蓝白调) */
+            background: #e8e8e8;  /* 修改这里可改变整体氛围底色 */
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+            touch-action: none;
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* 波点背景层 (可选: 修改波点颜色/动画速度) */
+        .dots-bg {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            z-index: 1;
+            pointer-events: none;
+            /* 波点样式: 颜色 & 大小 & 间距 (修改radial-gradient中的色值即可) */
+   background: 
+        radial-gradient(circle at 20% 20%, #b0b0b0 1px, transparent 1.8px),
+        radial-gradient(circle at 80% 40%, #c0c0c0 0.8px, transparent 1.5px),
+        radial-gradient(circle at 40% 70%, #a8a8a8 1px, transparent 1.8px),
+        radial-gradient(circle at 70% 90%, #b8b8b8 0.8px, transparent 1.5px);
+    background-size: 90px 90px;
+}
+            background-size: 100px 100px;
+            animation: diagonalScroll 80s linear infinite;  /* 修改80s可调整飘移速度 */
+            opacity: 0.3;
+        }
+
+        @keyframes diagonalScroll {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-25%, -25%); }
+        }
+
+        #container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+        }
+
+        /* --- 封面叠加层 (毛玻璃卡片) 样式自定义 --- */
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* 背景模糊颜色可修改 backdrop-filter 下的背景色调 */
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            transition: opacity 0.7s ease, visibility 0.7s;
+        }
+
+        .glass-card {
+            /* 卡片背景颜色和透明度修改区 */
+            background: rgba(255, 255, 255, 0.85);  /* 可改为 rgba(245,240,255,0.9) 等 */
+            padding: 3.5rem 2.5rem;
+            border-radius: 48px;
+            text-align: center;
+            border: 2px solid #fff;
+            box-shadow: 0 25px 60px rgba(100, 140, 180, 0.2);
+            max-width: 85%;
+            width: 420px;
+        }
+
+        /* 主标题字体/颜色/大小 */
+        .title-alice {
+    font-family: 'Fredoka One', cursive;
+            font-size: 2.6rem;
+            color: #2d2d2d;     /* 标题颜色 */
+            margin-bottom: 12px;
+            line-height: 1.2;
+            text-shadow: 2px 2px 0 rgba(255,255,255,0.8);
+        }
+
+        /* 副标题风格 */
+        .sub-alice {
+            font-family: 'Playfair Display', serif;
+            font-size: 0.85rem;
+            color: #2d2d2d;      /* 副标题颜色 */
+            letter-spacing: 4px;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        /* 按钮样式 */
+        .fairy-btn {
+            padding: 18px 50px;
+            font-size: 1.2rem;
+            font-family: 'Playfair Display', serif;
+            border-radius: 60px;
+            border: none;
+            background: linear-gradient(135deg, #333333 0%, #999999 50%, #f0f0f0 100%); /* 按钮渐变色 */
+            color: #;
+            font-weight: bold;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            outline: none;
+        }
+
+        .fairy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(161, 196, 253, 0.8);
+        }
+
+        .fade-out {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        /* 摇摇乐图片容器 */
+        .item-wrapper {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            will-change: left, top, transform;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .item-wrapper.show {
+            opacity: 1;
+        }
+
+        /* 图片背后的玻璃光晕效果 */
+        .glass-aura {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.7) 1px, transparent 1px);
+            background-size: 25px 25px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 24px rgba(120, 150, 190, 0.2), 0 0 0 1.5px rgba(255, 255, 255, 0.7);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .item-img {
+            position: relative;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.05));
+            z-index: 2;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dots-bg"></div>
+    <div id="container"></div>
+
+    <!-- 封面区 —— 所有文字/按钮内容都可修改 -->
+    <div id="overlay">
+        <div class="glass-card">
+            <!-- ========== 【1. 封面自定义区】 可任意修改下方标题、符号、按钮文字 ========= -->
+            <h1 class="title-alice">Mushroom puppy 🐾</h1>          <!-- 主标题: 替换为你想要的任何文字 -->
+            <p class="sub-alice">✧ ◍˃ᵕ˂◍ ✧</p>               <!-- 副标题或装饰字符 -->
+            <button id="start-btn" class="fairy-btn">DRINK ME</button>  <!-- 按钮文字 -->
+            <!-- 提示: 若要更改封面毛玻璃背景色, 修改 .glass-card 的 background 属性 -->
+            <!-- ============================================================= -->
+        </div>
+    </div>
+
+    <script>
+        // =================================================================
+        // 【2. 图片池配置区】 
+        // 将您自己的图片路径放入数组中，支持 .jpg/.png 等。建议使用绝对路径或相对路径。
+        // 注意: 如果图片跨域或不显示，请检查路径是否正确。示例使用了 '../图片/xxx.png'
+        // 您可以直接改为网络图片或本地的其他图片。
+        // =================================================================
+        const USER_IMAGES = [
+            '../图片/蘑菇狗.jpg',   // 替换成您的图片1
+            '../图片/黑心.png',   // 替换成您的图片2
+            '../图片/红心.png',  // 替换成您的图片3
+            '../图片/骨头.png'  // 替换成您的图片3
+        ];
+        
+        // 如果想要更多图片重复或者增加，修改下面的数组拼接逻辑
+        // 默认让每个图片重复出现三次，营造丰富感 (可自由修改次数)
+        let finalImagePool = [...USER_IMAGES, ...USER_IMAGES, ...USER_IMAGES];
+        // 如果您想精确控制图片数量，可以手动覆盖 finalImagePool 例如:
+        // let finalImagePool = ['path/a.png','path/b.png','path/c.png','path/d.png'];
+        
+        // =================================================================
+        // 【3. 掉落与动画参数区】 可以调整掉落速度、大小范围、反弹系数、摇晃强度等
+        // =================================================================
+        const BASE_SIZE = 140;          // 基准尺寸(未使用实际计算但保留备用)
+        // 图片光晕及图片尺寸随机范围: 见下方 createImageWithAura 中的 randomSize 区间
+        // 目前随机范围是 30px ~ 180px (即 30+Math.random()*150) 您可修改区间让图片更大或更小。
+        // 掉落初始速度: 见 startApp 中赋予的 item.vy = 20 + Math.random() * 10 (可修改)
+        // 摇晃触发强度: delta > 18 触发 (数值越小越灵敏) 见 handleMotion 中 delta > 18 改为 delta > 12 更灵敏
+        
+        let container = document.getElementById('container');
+        let overlay = document.getElementById('overlay');
+        let startBtn = document.getElementById('start-btn');
+        
+        let width, height;
+        let items = [];
+        let lastAcc = { x: 0, y: 0, z: 0 };
+        let isMotionEnabled = false;
+        let animationFrameId = null;
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+        }
+
+        // 创建带玻璃光晕的图片元素 (大小随机)
+        async function createImageWithAura(src) {
+            return new Promise((resolve) => {
+                const tempImg = new Image();
+                tempImg.onload = () => {
+                    const ratio = tempImg.width / tempImg.height;
+                    // ---------- 调整图片随机大小范围 (最小值~最大值) ----------
+                    // 原版: randomSize = 30 + Math.random() * 150 => 范围 30~180px
+                    // 若需要更大图片可改为 80 + Math.random() * 180 => 80~260px
+                    // 蘑菇狗图片更大，其他图片更小
+let randomSize;
+if (src.includes('蘑菇狗')) {
+    randomSize = 80 + Math.random() * 100;  // 蘑菇狗：80~180px
+} else {
+    randomSize = 25 + Math.random() * 55;   // 其他图片：25~80px
+}
+                    let displayW = ratio >= 1 ? randomSize : randomSize * ratio;
+                    let displayH = ratio >= 1 ? randomSize / ratio : randomSize;
+                    
+                    const wrapper = document.createElement('div');
+wrapper.className = 'item-wrapper';
+// 判断是否为蘑菇狗图片，设置最高层级
+if (src.includes('蘑菇狗')) {
+    wrapper.style.zIndex = '100';
+} else {
+    wrapper.style.zIndex = '10';
+}
+                    
+                    const aura = document.createElement('div');
+                    aura.className = 'glass-aura';
+                    const auraPadding = 12;
+                    const auraW = displayW + auraPadding * 2;
+                    const auraH = displayH + auraPadding * 2;
+                    
+                    aura.style.width = `${auraW}px`;
+                    aura.style.height = `${auraH}px`;
+                    aura.style.borderRadius = `${Math.min(auraW, auraH) * 0.25}px`;
+
+                    const imgEl = document.createElement('img');
+                    imgEl.src = src;
+                    imgEl.className = 'item-img';
+                    imgEl.style.width = `${displayW}px`;
+                    imgEl.style.height = `${displayH}px`;
+                    
+                    wrapper.appendChild(aura);
+                    wrapper.appendChild(imgEl);
+                    
+                    // 初始坐标: X 随机在水平范围内, Y 设置在屏幕上方 (-300 ~ -150)
+                    const randX = Math.random() * (window.innerWidth - auraW - 40) + 20;
+                    const startY = -350 - Math.random() * 200;  // 从更高的位置掉落
+                    
+                    wrapper.style.left = `0px`;
+                    wrapper.style.top = `0px`;
+                    wrapper.style.width = `${auraW}px`;
+                    wrapper.style.height = `${auraH}px`;
+                    
+                    container.appendChild(wrapper);
+                    resolve({
+                        wrapper, aura, img: imgEl,
+                        x: randX, y: startY,
+                        vx: 0, vy: 0,
+                        rot: Math.random() * 30 - 15,
+                        vr: (Math.random() - 0.5) * 2,
+                        phase: Math.random() * Math.PI * 2,
+                        width: auraW, height: auraH
+                    });
+                };
+                tempImg.src = src;
+            });
+        }
+
+        // 物理动画更新 (边界反弹 + 阻力)
+        function animate() {
+            const now = Date.now();
+            items.forEach(item => {
+                // 空气阻力
+                item.vx *= 0.97; 
+                item.vy *= 0.97; 
+                item.vr *= 0.95;
+                // 微小上下漂浮感
+                const bob = Math.sin(now / 600 + item.phase) * 0.12;
+                item.vy += bob;
+                
+                item.x += item.vx; 
+                item.y += item.vy; 
+                item.rot += item.vr;
+
+                // 边界反弹 (可修改弹性系数, 0.8 表示反弹损失能量)
+                const bounceDamping = 0.8;  // 修改这个值改变边界碰撞弹性 (0~1)
+                if (item.x < 5) { item.x = 5; item.vx *= -bounceDamping; }
+                if (item.x > width - item.width - 5) { item.x = width - item.width - 5; item.vx *= -bounceDamping; }
+                if (item.y < 5) { item.y = 5; item.vy *= -bounceDamping; }
+                if (item.y > height - item.height - 5) { item.y = height - item.height - 5; item.vy *= -bounceDamping; }
+
+                item.wrapper.style.transform = `translate3d(${item.x}px, ${item.y}px, 0) rotate(${item.rot}deg)`;
+            });
+            animationFrameId = requestAnimationFrame(animate);
+        }
+
+        // 摇晃触发弹跳: 为所有图片增加随机速度 (模拟摇动效果)
+        function triggerShake() {
+            // 摇晃强度系数: 可修改速度增量 (原版45, 增大则更猛烈)
+            const shakeStrengthX = 45;
+            const shakeStrengthY = 45;
+            const rotStrength = 60;
+            items.forEach(item => {
+                item.vx += (Math.random() - 0.5) * shakeStrengthX;
+                item.vy += (Math.random() - 0.5) * shakeStrengthY;
+                item.vr += (Math.random() - 0.5) * rotStrength;
+            });
+        }
+
+        // 设备运动事件 (手机摇一摇)
+        function handleMotion(e) {
+            if (!isMotionEnabled) return;
+            const acc = e.accelerationIncludingGravity;
+            if(!acc) return;
+            let delta = Math.abs(acc.x - lastAcc.x) + Math.abs(acc.y - lastAcc.y);
+            // 灵敏度: 数值越小越容易触发 (默认18, 可改为12或8)
+            const shakeSensitivity = 18;   // 修改此数值调整摇动灵敏度 (建议 10~25)
+            if (delta > shakeSensitivity) triggerShake();
+            lastAcc = { x: acc.x, y: acc.y, z: acc.z };
+        }
+
+        // 额外: 桌面端或鼠标晃动也能触发? 为了方便调试增加一个鼠标摇晃模拟 (当鼠标快速移动时触发)
+        let lastMouseX = 0, lastMouseY = 0;
+        function handleMouseMove(e) {
+            if (!isMotionEnabled) return;  // 跟随手机权限统一逻辑, 但桌面也可以开启
+            const currX = e.clientX;
+            const currY = e.clientY;
+            if (lastMouseX !== 0) {
+                const deltaX = Math.abs(currX - lastMouseX);
+                const deltaY = Math.abs(currY - lastMouseY);
+                if (deltaX + deltaY > 25) {  // 移动超过25px视为“摇动”
+                    triggerShake();
+                }
+            }
+            lastMouseX = currX;
+            lastMouseY = currY;
+        }
+        
+        // 启动主程序: 移除封面, 生成图片池并实现掉落动画
+        async function startApp() {
+            // 手机陀螺仪权限请求 (iOS需要)
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                try {
+                    const res = await DeviceMotionEvent.requestPermission();
+                    if (res === 'granted') isMotionEnabled = true;
+                } catch (e) { console.error(e); }
+            } else {
+                isMotionEnabled = true;
+            }
+            window.addEventListener('devicemotion', handleMotion);
+            // 同时增加鼠标移动模拟晃动 (可选，方便电脑端体验)
+            window.addEventListener('mousemove', handleMouseMove);
+            
+            overlay.classList.add('fade-out');
+            resize();
+            
+            // 创建所有图片元素
+            const promises = finalImagePool.map(src => createImageWithAura(src));
+            items = await Promise.all(promises);
+            
+            // ---------- 掉落效果: 设置初始速度并错开淡入 ----------
+            // 参数: 掉落初始向下速度范围, 水平飘移范围 (可自由调整)
+            const minFallSpeed = 18;    // 最小向下初速度
+            const maxFallSpeed = 32;    // 最大向下初速度
+            const maxHorSpeed = 8;      // 水平随机最大速度绝对值
+            
+            items.forEach((item, index) => {
+                setTimeout(() => {
+                    item.wrapper.classList.add('show');  // 淡入显示
+                    // 赋予掉落冲力
+                    item.vy = minFallSpeed + Math.random() * (maxFallSpeed - minFallSpeed);
+                    item.vx = (Math.random() - 0.5) * maxHorSpeed;
+                }, index * 100); // 间隔100毫秒依次掉落，可修改时间间隔，数值越大掉落越稀疏
+            });
+            
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            animate();
+        }
+
+        // 监听启动按钮
+        startBtn.addEventListener('click', startApp);
+        window.addEventListener('resize', resize);
+        resize();
+        
+        // 附加说明: 若想预置更多自定义配置例如封面颜色替换请直接修改 .glass-card 背景
+        // 示例: 想要更改封面背景色为淡紫色，找到 .glass-card { background: rgba(245, 235, 255, 0.9); }
+        // 想要修改波点颜色，修改 .dots-bg 中的径向渐变颜色即可
+        
+        // 为了让模板替换更加方便，在控制台输出友好的自定义提醒
+        console.log('🎉 摇摇乐模板已加载 — 您可以修改: 封面文字/颜色/图片数组/掉落速度/摇晃灵敏度等 (参考HTML注释区)');
+    </script>
+</body>
+</html>
